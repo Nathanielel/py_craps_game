@@ -1,11 +1,11 @@
 from game.core import CrapsGame
-from game.player import Player
+from game.player import HumanPlayer
 
 def start_human_game():
 
     name = input("Enter your name: ")
     bal = input("Enter your starting bankroll (default 1000): ")
-    player = Player(name, bal)
+    player = HumanPlayer(name, bal)
     game = CrapsGame([player])
     game.run()
 

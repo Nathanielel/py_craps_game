@@ -1,8 +1,17 @@
 from math import inf
 from game.bets.bet_manager import *
 
+MENU_PROMPT = """\
+Select an option, {}:
+        (b) - Check [B]alance
+        (c) - [C]urrent Bets
+        (p) - [P]lace bet
+        (r) - continue to [R]oll
+        (s) - [S]tand / no more bets this round
+        (q) - cash out / [Q]uit\n---> """
 
-class Player:
+
+class HumanPlayer:
     """
     Human craps player class
     """
@@ -25,7 +34,6 @@ class Player:
         "come": ComeBet,
         "dont-come": Bet,
     }
-
     def __init__(self, name: int, balance: str | int):
         self.name = name
         if balance == "":
@@ -33,40 +41,68 @@ class Player:
         else:
             self.balance = int(balance)
         self.active_bets = {}
+        self.skip = False
+        self.cashing_out = False
 
     def __str__(self) -> str:
         return self.name
 
-    def place_bets(self, point: int | None, manager: BetManager):
+    def play(self, point, manager):
         while True:
-            choice = input(f"care to place another bet, {self.name}? ")
-            if choice != 'y':
+            action = self._menu()
+            if action == "b":
+                self.balance_chk()
+            elif action == "p":
+                self._place_bets(point, manager)
+            elif action == "r":
                 return
-            can_bet = self._available_bets(point)
-            choice = input("what kind of bet would you like to place,"
-                        f" {self.name}?\n  {can_bet}: ")
-            while choice not in can_bet:
-                print("Enter a Valid option")
-                choice = input(f"what kind of bet would you like to place?\n\t{can_bet}: ")
-            # TODO: handle single-roll bets (nested)
-            wager = self._validated_bet("How much would you like to wager?")
-            bet = Player.bet_types[choice](self, wager)
-            manager.place_bet(bet)
-            choice = input(f"care to place another bet, {self.name}? ")
-            if choice != 'y':
+            elif action == "s":
+                self.skip = True
+                return
+            elif action == "q":
+                self.cashing_out = True
+                self.skip = True
                 return
 
-        # bet = self._validated_bet(f"{self}, enter your pass-line bet: ")
-        # print(f"Bet placed: {bet}")
-        # self.balance -= bet
-        # return bets
+    def balance_chk(self):
+        print(f"You have ${self.balance} in your bankroll.")
 
     def award_winnings(self, won: int):
         print(f"YYAAAAYYY RECEIVING $$ {won} $$ !!!!")
         self.balance += won
 
+    def _menu(self):
+        choice = None
+        if self.skip:
+            return "r"
+        while True:
+            choice = input(MENU_PROMPT.format(self.name)
+            ).lower()
+            if choice not in ["p", "b", "c", "q", "r", "s"]:
+                print("SELECT A VALID OPTION!")
+                continue
+            return choice
+
+    def _place_bets(self, point: int | None, manager: BetManager):
+        can_bet = self._available_bets(point)
+        can_bet.add("cancel")
+        choice = input(
+            "what kind of bet would you like to place," f" {self.name}?\n  {can_bet}: "
+        )
+        while choice not in can_bet:
+            print("Enter a Valid option")
+            choice = input(f"what kind of bet would you like to place?\n\t{can_bet}: ")
+        if choice == "cancel":
+            return
+        # TODO: handle single-roll bets (nested)
+        wager = self._validated_bet("How much would you like to wager?")
+        bet = HumanPlayer.bet_types[choice](self, wager)
+        self.balance -= wager
+        manager.place_bet(bet)
+
+
     def _available_bets(self, point: int | None) -> set[str]:
-        names = set(Player.bet_types.keys())
+        names = set(HumanPlayer.bet_types.keys())
         if not point:
             return names - {"come", "dont-come"}
         return names - {"pass-line", "dont-pass"}
@@ -76,8 +112,8 @@ class Player:
         Get an integer bet from the user such that 0 <= bet <= self.balance
         """
         bet = inf
-        if not prompt.endswith(' '):
-            prompt += ' '
+        if not prompt.endswith(" "):
+            prompt += " "
         while True:
             try:
                 bet = int(input(prompt))

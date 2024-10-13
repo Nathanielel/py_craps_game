@@ -1,0 +1,4 @@
+- Handle EOF errors on human player input as that player electing to quit
+- Write some helpful tests
+- Implement bot play
+- review design inclusion of intermediate ui/ module
