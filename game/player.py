@@ -127,7 +127,7 @@ class HumanPlayer:
         onFail: str = "Select a Valid option!",
         retry: str = "",
     ):
-        pick = input(prompt)
+        pick = input(prompt).lower()
         while pick not in choices:
             print(onFail)
             pick = input(retry if retry else prompt)
