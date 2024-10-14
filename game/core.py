@@ -2,6 +2,7 @@ from .dice import Dice
 from .bets.bet_manager import BetManager
 from .player import HumanPlayer
 
+DEBUG = False
 
 class CrapsGame:
     """
@@ -45,7 +46,7 @@ class CrapsGame:
                     print(f"{p} leaves the table with {p.balance}!")
                     self.players.remove(p)
 
-    def _add_players(self):
+    def _add_human_players(self):
         want_add = input("New round, want to add more human players? (y/n) ") == "y"
         while want_add:
             name = input("Enter your name: ")
@@ -73,6 +74,7 @@ class CrapsGame:
         """
         self.players = self.players[1:] + self.players[0:1]
 
+
     def run(self):
         """
         Keep the game running while there are players with money to bet (or the point is ON)
@@ -82,7 +84,7 @@ class CrapsGame:
             print(f"players at the table: {[str(p) for p in self.players ]}")
 
             if self.type != "bot" and not self.point:
-                self._add_players()
+                self._add_human_players()
             
             for player in self.players:
                 player.play(self.point, self.bet_manager)

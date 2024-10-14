@@ -22,14 +22,11 @@ class BetManager:
 
     def resolve_bets(self, point: int | None, roll: tuple[int, tuple[int, int]]):
         """
-        Resolves a bet based on the current roll & game state (come-out or point round)
+        Resolves all bets based on the current roll & game state (come-out or point round)
         
         Args:
-        - point: The current game state (GameState object), which tracks if we are
-                 in the come-out phase or point phase.
-        - dice_sum: The sum of the two rolled dice.
-
-        Returns:
+        - point: current point
+        - roll: (SUM , (die1, die2))
         """
         res = []
         print("Active bets:")
@@ -38,15 +35,8 @@ class BetManager:
         for bet in self.bets:
             res = bet.resolve(roll, point)
             print(f"Resolution of {bet}: {('continued', 'WON', 'LOST')[res]}")
-        self.bets = [b for b in self.bets if b.resolved]
-        # winning_bets = {}
-        # if not point:
-        #     if rollsum in {7, 11}:
-        #         print(f"{rollsum}! Quick Win!")
-        #         # winning_bets += {"pass-line": None, "single-roll" : {}, }
-        #         return winning_bets
-        #     if rollsum in {2, 3, 12}:
-        #         print(f"{rollsum}! Craps!")
+        self.bets = [b for b in self.bets if not b.resolved]
+
 
 WIN = 1
 BAR = -1

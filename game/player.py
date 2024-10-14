@@ -15,6 +15,7 @@ class HumanPlayer:
     """
     Human craps player class
     """
+
     bet_types = {
         "pass-line": PassLineBet,
         "dont-pass": DontPassBet,
@@ -34,6 +35,7 @@ class HumanPlayer:
         "come": ComeBet,
         "dont-come": Bet,
     }
+
     def __init__(self, name: int, balance: str | int):
         self.name = name
         if balance == "":
@@ -47,7 +49,7 @@ class HumanPlayer:
     def __str__(self) -> str:
         return self.name
 
-    def play(self, point: int|None, manager: BetManager):
+    def play(self, point: int | None, manager: BetManager):
         while True:
             action = self._menu()
             if action == "b":
@@ -77,23 +79,31 @@ class HumanPlayer:
         choice = None
         if self.skip:
             return "r"
+        return self._validated_choice(
+            choices=["p", "b", "c", "q", "r", "s"], prompt=MENU_PROMPT.format(self.name)
+        )
         while True:
-            choice = input(MENU_PROMPT.format(self.name)
-            ).lower()
+            choice = input(MENU_PROMPT.format(self.name)).lower()
             if choice not in ["p", "b", "c", "q", "r", "s"]:
                 print("SELECT A VALID OPTION!")
                 continue
             return choice
 
     def _place_bets(self, point: int | None, manager: BetManager):
+        # Zone Selection (Where on the table are the chips going?)
         can_bet = self._available_bets(point)
         can_bet.add("cancel")
-        choice = input(
-            "what kind of bet would you like to place," f" {self.name}?\n  {can_bet}: "
+        choice = self._validated_choice(
+            choices=can_bet,
+            prompt=f"what kind of bet would you like to place,"
+            f" {self.name}?\n  {can_bet}: ",
+            retry=f"what kind of bet would you like to place?\n  {can_bet}: ",
         )
-        while choice not in can_bet:
-            print("Enter a Valid option")
-            choice = input(f"what kind of bet would you like to place?\n\t{can_bet}: ")
+        if choice == "single-roll":
+            can_bet = self._available_bets(point, single_roll=True)
+            can_bet.add("cancel")
+            choice = self._validated_choice(choices=can_bet, prompt=f"{can_bet}: ")
+
         if choice == "cancel":
             return
         # TODO: handle single-roll bets (nested)
@@ -102,12 +112,26 @@ class HumanPlayer:
         self.balance -= wager
         manager.place_bet(bet)
 
-
-    def _available_bets(self, point: int | None) -> set[str]:
+    def _available_bets(self, point: int | None, single_roll=False) -> set[str]:
+        if single_roll:
+            return set(HumanPlayer.bet_types["single-roll"].keys())
         possible = set(HumanPlayer.bet_types.keys())
         if not point:
             return possible - {"come", "dont-come"}
         return possible - {"pass-line", "dont-pass"}
+
+    @staticmethod
+    def _validated_choice(
+        choices: list | set,
+        prompt: str,
+        onFail: str = "Select a Valid option!",
+        retry: str = "",
+    ):
+        pick = input(prompt)
+        while pick not in choices:
+            print(onFail)
+            pick = input(retry if retry else prompt)
+        return pick
 
     def _validated_bet(self, prompt: str) -> int:
         """
@@ -122,7 +146,9 @@ class HumanPlayer:
             except ValueError:
                 print("Must bet an integer value")
                 continue
-
+            if bet <= 0:
+                print("Must be a positive value")
+                continue
             if bet <= self.balance:
                 break
             print(f"Only have {self.balance} to bet! Try again!")
