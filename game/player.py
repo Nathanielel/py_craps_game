@@ -47,11 +47,13 @@ class HumanPlayer:
     def __str__(self) -> str:
         return self.name
 
-    def play(self, point, manager):
+    def play(self, point: int|None, manager: BetManager):
         while True:
             action = self._menu()
             if action == "b":
                 self.balance_chk()
+            elif action == "c":
+                manager.current_bets(self)
             elif action == "p":
                 self._place_bets(point, manager)
             elif action == "r":
@@ -102,10 +104,10 @@ class HumanPlayer:
 
 
     def _available_bets(self, point: int | None) -> set[str]:
-        names = set(HumanPlayer.bet_types.keys())
+        possible = set(HumanPlayer.bet_types.keys())
         if not point:
-            return names - {"come", "dont-come"}
-        return names - {"pass-line", "dont-pass"}
+            return possible - {"come", "dont-come"}
+        return possible - {"pass-line", "dont-pass"}
 
     def _validated_bet(self, prompt: str) -> int:
         """

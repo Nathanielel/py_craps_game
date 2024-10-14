@@ -18,13 +18,7 @@ def custom_print(*args, **kwargs):
 builtins.print = custom_print
 ###
 
-
-# Example usage:
-print("This is a test message.")
-
 if __name__ == "__main__":
     players = []
     print("Welcome to the game of Craps!")
     start_human_game()
-    # else:
-    #     join_human_game(game_in_progress, name, bal)

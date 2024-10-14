@@ -37,10 +37,8 @@ class BetManager:
 
         for bet in self.bets:
             res = bet.resolve(roll, point)
-            print(f"Resolution of {bet}: {res}")
-            if bet.resolved:
-                self.bets.remove(bet)
-
+            print(f"Resolution of {bet}: {('continued', 'WON', 'LOST')[res]}")
+        self.bets = [b for b in self.bets if b.resolved]
         # winning_bets = {}
         # if not point:
         #     if rollsum in {7, 11}:
