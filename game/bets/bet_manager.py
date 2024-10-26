@@ -34,12 +34,12 @@ class BetManager:
 
         for bet in self.bets:
             res = bet.resolve(roll, point)
-            print(f"Resolution of {bet}: {('continued', 'WON', 'LOST')[res]}")
+            print(f"Resolution of {bet}: {('continued', 'WON', 'PUSH', 'LOST')[res]}")
         self.bets = [b for b in self.bets if not b.resolved]
 
-
+CONTD = 0
 WIN = 1
-BAR = -1
+PUSH = 2
 LOSE = -1
 
 class Bet:
@@ -108,19 +108,25 @@ class DontPassBet(Bet):
         if not point:
             if dice_sum in {2, 3}:  # Win on 2 or 3
                 self._award_winnings(1/1)
+                self.resolved = True
                 return WIN
-            elif dice_sum == 7 or dice_sum == 11:  # Lose on 7 or 11
+            elif dice_sum in {7, 11}:  # Lose on 7 or 11
+                self.resolved = True
                 return LOSE
             elif dice_sum == 12:  # Push on 12
-                return "push"
+                self._award_winnings(0)
+                self.resolved = True
+                return PUSH
         else:
             if dice_sum == 7:  # Win if 7 is rolled
                 self._award_winnings(1/1)
+                self.resolved = True
                 return WIN
             elif dice_sum == point:  # Lose if point is hit
+                self.resolved = True
                 return LOSE
-        self._award_winnings(0)
-        return "push"
+        return CONTD
+            
 
 class ComeBet(Bet):
     def __init__(self, player, amount):

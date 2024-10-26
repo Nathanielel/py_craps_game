@@ -58,12 +58,12 @@ class HumanPlayer:
                 manager.current_bets(self)
             elif action == "p":
                 self._place_bets(point, manager)
-            elif action == "r":
+            elif action == "r": # ROLL
                 return
-            elif action == "s":
+            elif action == "s": # SKIP
                 self.skip = True
                 return
-            elif action == "q":
+            elif action == "q": # QUIT
                 self.cashing_out = True
                 self.skip = True
                 return
@@ -76,18 +76,11 @@ class HumanPlayer:
         self.balance += won
 
     def _menu(self):
-        choice = None
         if self.skip:
             return "r"
         return self._validated_choice(
             choices=["p", "b", "c", "q", "r", "s"], prompt=MENU_PROMPT.format(self.name)
         )
-        while True:
-            choice = input(MENU_PROMPT.format(self.name)).lower()
-            if choice not in ["p", "b", "c", "q", "r", "s"]:
-                print("SELECT A VALID OPTION!")
-                continue
-            return choice
 
     def _place_bets(self, point: int | None, manager: BetManager):
         # Zone Selection (Where on the table are the chips going?)
